@@ -18,6 +18,7 @@ import {
   Shield,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppShell } from "@/components/app-shell";
@@ -401,9 +402,12 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <div className="px-6 py-3 border-t border-border">
-                  <button className="w-full rounded-md bg-foreground/5 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/10 transition-colors">
+                  <Link
+                    href="/audit-logs"
+                    className="block w-full rounded-md bg-foreground/5 px-3 py-2 text-center text-xs font-medium text-muted-foreground hover:bg-foreground/10 transition-colors"
+                  >
                     View All Pending Approvals
-                  </button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

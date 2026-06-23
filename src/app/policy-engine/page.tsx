@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, DollarSign, Tag, Users, AlertTriangle, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AppShell } from "@/components/app-shell";
-import { policies } from "@/lib/data";
+import { policies as initialPolicies } from "@/lib/data";
 
 const policyIcons: Record<string, React.ElementType> = {
   spending: DollarSign,
@@ -34,6 +35,16 @@ const stagger = {
 };
 
 export default function PolicyEnginePage() {
+  const [policyStates, setPolicyStates] = useState(() =>
+    Object.fromEntries(initialPolicies.map((p) => [p.id, p.enabled]))
+  );
+
+  const togglePolicy = (id: string) => {
+    setPolicyStates((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const activeCount = Object.values(policyStates).filter(Boolean).length;
+
   return (
     <AppShell>
       <motion.div
@@ -43,21 +54,29 @@ export default function PolicyEnginePage() {
         className="space-y-6"
       >
         <motion.div variants={fadeIn}>
-          <h1 className="text-2xl font-bold tracking-tight">Policy Engine</h1>
-          <p className="text-sm text-muted-foreground">
-            Enterprise governance rules enforced on every autonomous decision
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Policy Engine</h1>
+              <p className="text-sm text-muted-foreground">
+                Enterprise governance rules enforced on every autonomous decision
+              </p>
+            </div>
+            <Badge variant="secondary" className="text-xs bg-success-muted text-success">
+              {activeCount}/{initialPolicies.length} Active
+            </Badge>
+          </div>
         </motion.div>
 
         <motion.div
           variants={stagger}
           className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
         >
-          {policies.map((policy) => {
+          {initialPolicies.map((policy) => {
             const Icon = policyIcons[policy.type] || Shield;
+            const isEnabled = policyStates[policy.id];
             return (
               <motion.div key={policy.id} variants={fadeIn}>
-                <Card className="border-border bg-card transition-colors hover:border-foreground/15">
+                <Card className={`border-border bg-card transition-colors hover:border-foreground/15 ${!isEnabled ? "opacity-50" : ""}`}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -71,6 +90,20 @@ export default function PolicyEnginePage() {
                           </p>
                         </div>
                       </div>
+                      <button
+                        onClick={() => togglePolicy(policy.id)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                          isEnabled ? "bg-success" : "bg-muted-foreground/30"
+                        }`}
+                        role="switch"
+                        aria-checked={isEnabled}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform ${
+                            isEnabled ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
                     </div>
 
                     <div className="mt-4 space-y-3">
@@ -169,13 +202,13 @@ export default function PolicyEnginePage() {
 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          {policy.enabled ? (
+                          {isEnabled ? (
                             <CheckCircle className="h-3.5 w-3.5 text-success" />
                           ) : (
                             <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground/40" />
                           )}
                           <span className="text-xs text-muted-foreground">
-                            {policy.enabled ? "Active" : "Disabled"}
+                            {isEnabled ? "Active" : "Disabled"}
                           </span>
                         </div>
                         <span className="font-mono text-[10px] text-muted-foreground/50 uppercase">
