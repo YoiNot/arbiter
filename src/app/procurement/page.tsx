@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
@@ -13,12 +13,19 @@ import {
   FileText,
   Bot,
   ArrowRight,
+  Sparkles,
+  Shield,
+  Play,
+  Loader2,
+  Zap,
+  Eye,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AppShell } from "@/components/app-shell";
-import { requests } from "@/lib/data";
+import { requests, vendors as allVendors } from "@/lib/data";
+import type { RequestStage, ProcurementRequest } from "@/lib/types";
 
 function StageIndicator({
   status,
@@ -34,22 +41,87 @@ function StageIndicator({
   return <Clock className="h-5 w-5 text-muted-foreground/40" />;
 }
 
-function RequirementsStage({
-  output,
-}: {
-  output: string[];
-}) {
+function RequirementsStage({ output }: { output: string[] }) {
   return (
     <div className="space-y-2">
       {output?.map((item, i) => (
-        <div
+        <motion.div
           key={i}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: i * 0.1 }}
           className="flex items-center gap-2 rounded-md bg-foreground/5 px-3 py-1.5 text-sm"
         >
           <div className="h-1.5 w-1.5 rounded-full bg-info" />
           {item}
-        </div>
+        </motion.div>
       ))}
+    </div>
+  );
+}
+
+function HermesTraceStage({
+  trace,
+}: {
+  trace: NonNullable<RequestStage["hermesTrace"]>;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-primary/20 blur-md" />
+          <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+            <Sparkles className="h-3 w-3 text-primary" />
+          </div>
+        </div>
+        <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+          Powered by Hermes
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="rounded-md border border-border bg-foreground/5 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Goal</p>
+          <p className="text-sm">{trace.goal}</p>
+        </div>
+        <div className="rounded-md border border-border bg-foreground/5 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Decision Path</p>
+          <p className="text-sm text-success">{trace.decisionPath}</p>
+        </div>
+      </div>
+
+      <div className="rounded-md border border-border bg-foreground/5 p-3">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Constraints</p>
+        <div className="flex flex-wrap gap-1.5">
+          {trace.constraints.map((c, i) => (
+            <Badge key={i} variant="secondary" className="text-[10px] bg-foreground/5">
+              {c}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-border bg-foreground/5 p-3">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Candidates</p>
+        <div className="flex flex-wrap gap-1.5">
+          {trace.candidates.map((c, i) => (
+            <Badge key={i} variant="secondary" className="text-[10px] bg-info-muted text-info">
+              {c}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-border bg-foreground/5 p-3">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Evaluation Strategy</p>
+        <div className="flex flex-wrap gap-1.5">
+          {trace.strategy.map((s, i) => (
+            <Badge key={i} variant="secondary" className="text-[10px] bg-foreground/5">
+              {s}
+            </Badge>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -85,7 +157,7 @@ function VendorStage({
             <span className="font-medium">{v.name}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs text-muted-foreground">
+            <span className="font-mono text-xs text-muted-foreground hidden md:block">
               {v.reasoning}
             </span>
             <span
@@ -198,25 +270,51 @@ function DecisionStage({
   );
 }
 
-function ExecutionStage({
-  action,
-  executionStatus,
+function StripeExecutionStage({
+  stripe,
 }: {
-  action?: string;
-  executionStatus?: string;
+  stripe: NonNullable<RequestStage["stripe"]>;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 rounded-md bg-foreground/5 px-3 py-2 text-sm">
-        <CreditCard className="h-4 w-4 text-info" />
-        <span className="font-medium">{action}</span>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-[#635bff]/20 blur-md" />
+          <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-[#635bff]/10">
+            <CreditCard className="h-3 w-3 text-[#635bff]" />
+          </div>
+        </div>
+        <Badge variant="secondary" className="text-[10px] bg-[#635bff]/10 text-[#635bff] border-[#635bff]/20">
+          Powered by Stripe
+        </Badge>
       </div>
-      <div className="flex items-center gap-2 rounded-md bg-foreground/5 px-3 py-2 text-sm">
-        <span className="text-xs text-muted-foreground">Status:</span>
-        <span className="font-medium">{executionStatus}</span>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-md border border-border bg-foreground/5 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Payment Intent</p>
+          <p className="font-mono text-xs font-bold truncate">{stripe.paymentIntentId}</p>
+        </div>
+        <div className="rounded-md border border-border bg-foreground/5 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Vendor</p>
+          <p className="text-sm font-medium">{stripe.vendor}</p>
+        </div>
+        <div className="rounded-md border border-border bg-foreground/5 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
+          <p className="font-mono text-sm font-bold">${stripe.amount}/mo</p>
+        </div>
+        <div className="rounded-md border border-border bg-foreground/5 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Frequency</p>
+          <p className="text-sm">{stripe.frequency}</p>
+        </div>
       </div>
+
+      <div className="flex items-center gap-2 rounded-md bg-success-muted border border-success/20 px-3 py-2">
+        <CheckCircle className="h-4 w-4 text-success" />
+        <span className="text-sm font-medium text-success">{stripe.status}</span>
+      </div>
+
       <p className="text-xs text-muted-foreground/60 italic">
-        This is a simulated action only. No real payments required.
+        Simulated execution — no real payments processed.
       </p>
     </div>
   );
@@ -239,38 +337,16 @@ function AuditStage({
         <p>
           <span className="text-muted-foreground">Timestamp:</span> {timestamp}
         </p>
-        <p>
-          <span className="text-muted-foreground">Vendor:</span> Fireflies
-        </p>
-        <p>
-          <span className="text-muted-foreground">Cost:</span> $39/mo
-        </p>
-        <p>
-          <span className="text-muted-foreground">Decision:</span> Approved
-        </p>
-        <p>
-          <span className="text-muted-foreground">Policy Results:</span>{" "}
-          All Pass
-        </p>
       </div>
     </div>
   );
 }
 
-const stageIcons = [
-  FileText,
-  Bot,
-  Shield,
-  CheckCircle,
-  CreditCard,
-  FileText,
-];
+const stageIcons = [FileText, Sparkles, Bot, Shield, CheckCircle, CreditCard, FileText];
 
-import { Shield } from "lucide-react";
-
-function WorkflowPipeline({ request }: { request: (typeof requests)[0] }) {
+function WorkflowPipeline({ request }: { request: ProcurementRequest }) {
   const [expandedStages, setExpandedStages] = useState<Set<number>>(
-    new Set([0, 1, 2, 3, 4, 5])
+    new Set(request.stages.map((_, i) => i))
   );
 
   const toggleStage = (index: number) => {
@@ -314,6 +390,8 @@ function WorkflowPipeline({ request }: { request: (typeof requests)[0] }) {
                   <div className="ml-8 border-l border-border pb-3 pl-4 pt-1">
                     {stage.name === "Requirements Analysis" &&
                       stage.output && <RequirementsStage output={stage.output} />}
+                    {stage.name === "Hermes Decision Trace" &&
+                      stage.hermesTrace && <HermesTraceStage trace={stage.hermesTrace} />}
                     {stage.name === "Vendor Evaluation" &&
                       stage.vendors && <VendorStage vendors={stage.vendors} />}
                     {stage.name === "Governance Checks" &&
@@ -332,12 +410,8 @@ function WorkflowPipeline({ request }: { request: (typeof requests)[0] }) {
                           reason={stage.reason}
                         />
                       )}
-                    {stage.name === "Execution" && (
-                      <ExecutionStage
-                        action={stage.action}
-                        executionStatus={stage.executionStatus}
-                      />
-                    )}
+                    {stage.name === "Stripe Execution" &&
+                      stage.stripe && <StripeExecutionStage stripe={stage.stripe} />}
                     {stage.name === "Audit Trail" && (
                       <AuditStage
                         decisionId={stage.decisionId}
@@ -358,8 +432,193 @@ function WorkflowPipeline({ request }: { request: (typeof requests)[0] }) {
   );
 }
 
+function AnimatedPipeline({ request }: { request: ProcurementRequest }) {
+  const [visibleStages, setVisibleStages] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const runPipeline = useCallback(() => {
+    setIsRunning(true);
+    setVisibleStages(0);
+    let current = 0;
+    const interval = setInterval(() => {
+      current++;
+      setVisibleStages(current);
+      if (current >= request.stages.length) {
+        clearInterval(interval);
+        setIsRunning(false);
+      }
+    }, 700);
+  }, [request.stages.length]);
+
+  const visible = request.stages.slice(0, visibleStages);
+
+  return (
+    <div>
+      {!isRunning && visibleStages === 0 && (
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          Click &quot;Run Arbiter&quot; to simulate the autonomous decision pipeline
+        </div>
+      )}
+      <div className="space-y-1">
+        {visible.map((stage, i) => {
+          const Icon = stageIcons[i] || FileText;
+          const isLatest = i === visible.length - 1 && isRunning;
+          return (
+            <motion.div
+              key={stage.name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex w-full items-center gap-3 rounded-md px-3 py-2.5">
+                {isLatest ? (
+                  <div className="h-5 w-5 rounded-full border-2 border-warning animate-spin border-t-transparent" />
+                ) : (
+                  <CheckCircle className="h-5 w-5 text-success" />
+                )}
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <span className="flex-1 text-sm font-medium">{stage.name}</span>
+                {isLatest && (
+                  <Badge variant="secondary" className="text-[10px] bg-warning-muted text-warning">
+                    Processing
+                  </Badge>
+                )}
+              </div>
+              <div className="ml-8 border-l border-border/50" />
+            </motion.div>
+          );
+        })}
+      </div>
+      {visibleStages >= request.stages.length && !isRunning && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mt-4 rounded-lg border-2 border-success/30 bg-success-muted p-4 text-center"
+        >
+          <CheckCircle className="h-6 w-6 text-success mx-auto mb-2" />
+          <p className="text-sm font-bold text-success">Pipeline Complete</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            All autonomous decision stages executed successfully
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+const categories = ["Software", "Cloud Services", "Developer Tools", "Security"];
+const priorities = ["low", "medium", "high"] as const;
+
 export default function ProcurementPage() {
   const [selectedRequest, setSelectedRequest] = useState(requests[0]);
+  const [simulatorRequest, setSimulatorRequest] = useState<ProcurementRequest | null>(null);
+  const [need, setNeed] = useState("");
+  const [budget, setBudget] = useState("");
+  const [category, setCategory] = useState("Software");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+
+  const runArbiter = () => {
+    if (!need.trim() || !budget.trim()) return;
+
+    const matchedVendors = allVendors
+      .filter((v) => v.category.toLowerCase().includes(category.toLowerCase()) || v.category === "Software")
+      .sort((a, b) => b.complianceScore - a.complianceScore)
+      .slice(0, 3);
+
+    const budgetNum = parseInt(budget);
+    const selected = matchedVendors[0];
+    const isViolation = budgetNum > 500;
+
+    const newRequest: ProcurementRequest = {
+      id: `sim-${Date.now()}`,
+      title: need,
+      description: need,
+      budget: budgetNum,
+      category,
+      priority,
+      agent: "hermes-001",
+      status: isViolation ? "violated" : "completed",
+      createdAt: new Date().toISOString(),
+      stages: [
+        {
+          name: "Requirements Analysis",
+          status: "complete",
+          output: [need, `Budget under $${budget}/month`, `Category: ${category}`],
+        },
+        {
+          name: "Hermes Decision Trace",
+          status: "complete",
+          hermesTrace: {
+            goal: need,
+            constraints: [`Budget under $${budget}/month`, `${category} category`, `${priority} priority`],
+            candidates: matchedVendors.map((v) => v.name),
+            strategy: ["Feature fit scoring", "Cost efficiency analysis", "Compliance verification"],
+            decisionPath: `${selected.name} selected — highest compliance score (${selected.complianceScore}), within budget`,
+          },
+        },
+        {
+          name: "Vendor Evaluation",
+          status: "complete",
+          vendors: matchedVendors.map((v) => ({
+            name: v.name,
+            score: v.complianceScore,
+            reasoning: v.description,
+          })),
+        },
+        {
+          name: "Governance Checks",
+          status: "complete",
+          checks: [
+            { policy: "Budget Policy", result: budgetNum <= 150 ? "pass" : "pass" },
+            { policy: "Category Policy", result: "pass" },
+            { policy: "Vendor Policy", result: "pass" },
+            { policy: "Autonomous Purchase Limit", result: isViolation ? "violation" : "pass" },
+          ],
+          ...(isViolation
+            ? {
+                violation: {
+                  policy: "Autonomous Purchase Limit",
+                  reason: `Purchase exceeds autonomous spending threshold of $500/month`,
+                  requiredAction: "Human Approval Required",
+                },
+              }
+            : {}),
+        },
+        ...(!isViolation
+          ? [
+              {
+                name: "Decision Engine" as const,
+                status: "complete" as const,
+                decision: "approved" as const,
+                selectedVendor: selected.name,
+                monthlyCost: selected.monthlyPrice,
+                reason: "Highest compliance score and within budget",
+              },
+              {
+                name: "Stripe Execution" as const,
+                status: "complete" as const,
+                stripe: {
+                  paymentIntentId: `pi_${Math.random().toString(36).slice(2, 14)}`,
+                  vendor: selected.name,
+                  amount: selected.monthlyPrice,
+                  frequency: "Monthly",
+                  status: "Ready for Execution",
+                },
+              },
+              {
+                name: "Audit Trail" as const,
+                status: "complete" as const,
+                decisionId: `DEC-2025-${String(Math.floor(Math.random() * 900) + 100)}`,
+                timestamp: new Date().toISOString(),
+              },
+            ]
+          : []),
+      ],
+    };
+
+    setSimulatorRequest(newRequest);
+    setSelectedRequest(newRequest);
+  };
 
   return (
     <AppShell>
@@ -373,12 +632,113 @@ export default function ProcurementPage() {
             Procurement Requests
           </h1>
           <p className="text-sm text-muted-foreground">
-            Structured decision pipeline for AI-generated purchasing decisions
+            Autonomous governance pipeline — Hermes decides, Arbiter validates, Stripe executes
           </p>
         </div>
 
+        <Card className="border-border bg-card">
+          <CardHeader className="border-b border-border pb-4">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-warning" />
+              <CardTitle className="text-base font-semibold">
+                Create Autonomous Purchase Request
+              </CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Submit a request and watch Hermes autonomously evaluate, govern, and execute
+            </p>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Business Need</label>
+                <input
+                  type="text"
+                  value={need}
+                  onChange={(e) => setNeed(e.target.value)}
+                  placeholder="Need a transcription solution for our sales team"
+                  className="w-full rounded-md border border-border bg-foreground/5 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Budget ($/mo)</label>
+                <input
+                  type="number"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  placeholder="150"
+                  className="w-full rounded-md border border-border bg-foreground/5 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full rounded-md border border-border bg-foreground/5 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Priority</label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
+                  className="w-full rounded-md border border-border bg-foreground/5 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
+                >
+                  {priorities.map((p) => (
+                    <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                onClick={runArbiter}
+                disabled={!need.trim() || !budget.trim()}
+                className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Play className="h-4 w-4" />
+                Run Arbiter
+              </button>
+              <span className="text-xs text-muted-foreground">
+                7-stage autonomous pipeline — ~5s simulation
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {simulatorRequest && (
+          <Card className="border-border bg-card">
+            <CardHeader className="border-b border-border pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-semibold">
+                    Live Pipeline — {simulatorRequest.title}
+                  </CardTitle>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Sequential autonomous evaluation in progress
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-xs bg-warning-muted text-warning">
+                  Simulated
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <AnimatedPipeline request={simulatorRequest} />
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-3 lg:col-span-1">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground px-1">
+              Request History
+            </p>
             {requests.map((req) => (
               <Card
                 key={req.id}
@@ -434,9 +794,9 @@ export default function ProcurementPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-4 w-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
-                      Workflow Pipeline
+                      Full Decision Trace
                     </span>
                   </div>
                 </div>

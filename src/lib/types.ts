@@ -53,10 +53,27 @@ export interface VendorEvaluation {
   reasoning: string;
 }
 
+export interface HermesTrace {
+  goal: string;
+  constraints: string[];
+  candidates: string[];
+  strategy: string[];
+  decisionPath: string;
+}
+
+export interface StripeExecution {
+  paymentIntentId: string;
+  vendor: string;
+  amount: number;
+  frequency: string;
+  status: string;
+}
+
 export interface RequestStage {
   name: string;
   status: "complete" | "in-progress" | "pending";
   output?: string[];
+  hermesTrace?: HermesTrace;
   vendors?: VendorEvaluation[];
   checks?: PolicyCheck[];
   violation?: {
@@ -68,9 +85,7 @@ export interface RequestStage {
   selectedVendor?: string;
   monthlyCost?: number;
   reason?: string;
-  action?: string;
-  paymentId?: string;
-  executionStatus?: string;
+  stripe?: StripeExecution;
   decisionId?: string;
   timestamp?: string;
 }

@@ -12,14 +12,17 @@ import {
   Zap,
   AlertTriangle,
   FileCheck,
+  ArrowRight,
+  Sparkles,
+  CreditCard,
+  Shield,
+  Users,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppShell } from "@/components/app-shell";
 import {
-  auditLogs,
   getViolationCount,
-  getApprovedCount,
   getTotalCapitalUnderGovernance,
 } from "@/lib/data";
 
@@ -58,6 +61,39 @@ const kpiCards = [
   },
 ];
 
+const lifecycleSteps = [
+  {
+    icon: Bot,
+    label: "Agent Request",
+    sublabel: "Hermes initiates",
+    color: "text-info bg-info-muted",
+  },
+  {
+    icon: Sparkles,
+    label: "Hermes Decision Engine",
+    sublabel: "Autonomous reasoning",
+    color: "text-primary bg-primary/10",
+  },
+  {
+    icon: Shield,
+    label: "Governance Validation",
+    sublabel: "Policy enforcement",
+    color: "text-warning bg-warning-muted",
+  },
+  {
+    icon: CreditCard,
+    label: "Stripe Execution",
+    sublabel: "Payment processing",
+    color: "text-[#635bff] bg-[#635bff]/10",
+  },
+  {
+    icon: FileCheck,
+    label: "Audit Record",
+    sublabel: "Immutable ledger",
+    color: "text-success bg-success-muted",
+  },
+];
+
 const recentActivity = [
   {
     id: 1,
@@ -66,7 +102,7 @@ const recentActivity = [
     title: "Purchase Approved",
     detail: "Fireflies — $39/mo for sales team transcription",
     time: "2 minutes ago",
-    agent: "procurement-agent-001",
+    agent: "hermes-001",
   },
   {
     id: 2,
@@ -75,7 +111,7 @@ const recentActivity = [
     title: "Policy Violation Detected",
     detail: "Enterprise CRM exceeds $500 autonomous limit",
     time: "15 minutes ago",
-    agent: "procurement-agent-001",
+    agent: "hermes-001",
   },
   {
     id: 3,
@@ -93,7 +129,7 @@ const recentActivity = [
     title: "Payment Intent Created",
     detail: "Stripe pi_3OxK2L2eZvKYlo2C — $12/mo",
     time: "2 hours ago",
-    agent: "procurement-agent-001",
+    agent: "hermes-001",
   },
   {
     id: 5,
@@ -102,7 +138,26 @@ const recentActivity = [
     title: "Human Approval Requested",
     detail: "Legal contract management — restricted category",
     time: "3 hours ago",
-    agent: "procurement-agent-001",
+    agent: "hermes-001",
+  },
+];
+
+const pendingApprovals = [
+  {
+    id: 1,
+    title: "Enterprise CRM Platform",
+    budget: "$1,200/month",
+    reason: "Exceeds autonomous spending threshold",
+    agent: "hermes-001",
+    time: "15 minutes ago",
+  },
+  {
+    id: 2,
+    title: "Legal Contract Management",
+    budget: "Restricted category",
+    reason: "Legal services require human review",
+    agent: "hermes-001",
+    time: "3 hours ago",
   },
 ];
 
@@ -142,8 +197,7 @@ export default function DashboardPage() {
             Governance for Autonomous Commerce
           </p>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground/80">
-            Enable AI agents to purchase, provision, and operate within
-            enterprise policy.
+            The control plane that enables enterprises to safely delegate purchasing authority to AI agents.
           </p>
         </motion.div>
 
@@ -191,49 +245,170 @@ export default function DashboardPage() {
           <Card className="border-border bg-card">
             <CardHeader className="border-b border-border pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold">
-                  Recent Activity
-                </CardTitle>
-                <Badge variant="secondary" className="text-xs">
-                  Live
+                <div>
+                  <CardTitle className="text-base font-semibold">
+                    Autonomous Commerce Lifecycle
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    How Hermes AI agents make decisions within enterprise governance
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-xs bg-success-muted text-success">
+                  127 decisions today
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-border">
-                {recentActivity.map((activity, i) => (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + i * 0.05 }}
-                    className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-foreground/[0.02]"
-                  >
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${typeColors[activity.type]}`}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
+                {lifecycleSteps.map((step, i) => (
+                  <div key={step.label} className="flex items-center gap-2">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 + i * 0.15 }}
+                      className="flex flex-col items-center gap-2 min-w-[120px]"
                     >
-                      <activity.icon className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{activity.title}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {activity.detail}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-muted-foreground">
-                        {activity.time}
-                      </p>
-                      <p className="font-mono text-[10px] text-muted-foreground/60">
-                        {activity.agent}
-                      </p>
-                    </div>
-                  </motion.div>
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${step.color}`}>
+                        <step.icon className="h-5 w-5" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-semibold">{step.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{step.sublabel}</p>
+                      </div>
+                    </motion.div>
+                    {i < lifecycleSteps.length - 1 && (
+                      <motion.div
+                        initial={{ opacity: 0, scaleX: 0 }}
+                        animate={{ opacity: 1, scaleX: 1 }}
+                        transition={{ delay: 0.3 + i * 0.15 }}
+                      >
+                        <ArrowRight className="h-4 w-4 text-muted-foreground/30 shrink-0" />
+                      </motion.div>
+                    )}
+                  </div>
                 ))}
+              </div>
+              <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">127</p>
+                  <p className="text-xs text-muted-foreground">autonomous decisions processed today</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-success">96%</p>
+                  <p className="text-xs text-muted-foreground">approved automatically</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-warning">17</p>
+                  <p className="text-xs text-muted-foreground">policy escalations</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <motion.div variants={fadeIn} className="lg:col-span-2">
+            <Card className="border-border bg-card h-full">
+              <CardHeader className="border-b border-border pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-semibold">
+                    Recent Activity
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    Live
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  {recentActivity.map((activity, i) => (
+                    <motion.div
+                      key={activity.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + i * 0.05 }}
+                      className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-foreground/[0.02]"
+                    >
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${typeColors[activity.type]}`}
+                      >
+                        <activity.icon className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{activity.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {activity.detail}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-muted-foreground">
+                          {activity.time}
+                        </p>
+                        <p className="font-mono text-[10px] text-muted-foreground/60">
+                          {activity.agent}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={fadeIn}>
+            <Card className="border-border bg-card h-full">
+              <CardHeader className="border-b border-border pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-warning" />
+                    <CardTitle className="text-base font-semibold">
+                      Pending Human Approvals
+                    </CardTitle>
+                  </div>
+                  <Badge variant="secondary" className="text-xs bg-warning-muted text-warning">
+                    {pendingApprovals.length}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  {pendingApprovals.map((approval, i) => (
+                    <motion.div
+                      key={approval.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + i * 0.1 }}
+                      className="px-6 py-4"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{approval.title}</p>
+                          <p className="mt-1 font-mono text-xs text-warning font-bold">
+                            {approval.budget}
+                          </p>
+                        </div>
+                        <Clock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {approval.reason}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="font-mono text-[10px] text-muted-foreground/60">
+                          {approval.agent} — {approval.time}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="px-6 py-3 border-t border-border">
+                  <button className="w-full rounded-md bg-foreground/5 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/10 transition-colors">
+                    View All Pending Approvals
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </motion.div>
     </AppShell>
   );

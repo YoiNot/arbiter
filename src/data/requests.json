@@ -6,7 +6,7 @@
     "budget": 150,
     "category": "Software",
     "priority": "medium",
-    "agent": "procurement-agent-001",
+    "agent": "hermes-001",
     "status": "completed",
     "createdAt": "2025-01-15T14:00:00Z",
     "stages": [
@@ -14,6 +14,17 @@
         "name": "Requirements Analysis",
         "status": "complete",
         "output": ["Meeting transcription", "Sales enablement", "Budget under $150/month"]
+      },
+      {
+        "name": "Hermes Decision Trace",
+        "status": "complete",
+        "hermesTrace": {
+          "goal": "Find a meeting transcription platform for the sales team",
+          "constraints": ["Budget under $150/month", "Enterprise-grade transcription accuracy", "CRM integration support"],
+          "candidates": ["Fireflies", "Otter", "Fathom"],
+          "strategy": ["Feature fit scoring", "Cost efficiency analysis", "Enterprise readiness assessment"],
+          "decisionPath": "Fireflies selected — highest overall score (89), best transcription accuracy, native CRM integrations"
+        }
       },
       {
         "name": "Vendor Evaluation",
@@ -43,11 +54,15 @@
         "reason": "Highest score and policy compliant"
       },
       {
-        "name": "Execution",
+        "name": "Stripe Execution",
         "status": "complete",
-        "action": "Stripe Payment Intent Created",
-        "paymentId": "pi_3OxK2L2eZvKYlo2C",
-        "executionStatus": "Ready for Purchase"
+        "stripe": {
+          "paymentIntentId": "pi_3OxK2L2eZvKYlo2C",
+          "vendor": "Fireflies",
+          "amount": 39,
+          "frequency": "Monthly",
+          "status": "Ready for Execution"
+        }
       },
       {
         "name": "Audit Trail",
@@ -64,7 +79,7 @@
     "budget": 1200,
     "category": "Software",
     "priority": "high",
-    "agent": "procurement-agent-001",
+    "agent": "hermes-001",
     "status": "violated",
     "createdAt": "2025-01-13T16:00:00Z",
     "stages": [
@@ -72,6 +87,17 @@
         "name": "Requirements Analysis",
         "status": "complete",
         "output": ["Enterprise CRM", "Customer management", "Budget under $1200/month"]
+      },
+      {
+        "name": "Hermes Decision Trace",
+        "status": "complete",
+        "hermesTrace": {
+          "goal": "Find an enterprise CRM platform for customer management",
+          "constraints": ["Budget under $1200/month", "Enterprise-grade features", "Scalable for 500+ users"],
+          "candidates": ["Salesforce", "HubSpot", "Pipedrive"],
+          "strategy": ["Feature completeness scoring", "Total cost of ownership", "Enterprise adoption analysis"],
+          "decisionPath": "Salesforce selected — industry leader (95 score), comprehensive enterprise feature set"
+        }
       },
       {
         "name": "Vendor Evaluation",
