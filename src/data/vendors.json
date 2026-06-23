@@ -1,0 +1,74 @@
+[
+  {
+    "id": "v1",
+    "name": "Fireflies",
+    "category": "Meeting Transcription",
+    "description": "AI-powered meeting transcription and notes platform",
+    "monthlyPrice": 39,
+    "annualPrice": 468,
+    "rating": 4.5,
+    "complianceScore": 92,
+    "policies": ["SOC2", "GDPR", "CCPA"],
+    "status": "approved"
+  },
+  {
+    "id": "v2",
+    "name": "Otter",
+    "category": "Meeting Transcription",
+    "description": "Real-time transcription and collaboration for meetings",
+    "monthlyPrice": 20,
+    "annualPrice": 240,
+    "rating": 4.2,
+    "complianceScore": 88,
+    "policies": ["SOC2", "GDPR"],
+    "status": "approved"
+  },
+  {
+    "id": "v3",
+    "name": "Fathom",
+    "category": "Meeting Transcription",
+    "description": "AI meeting assistant that records, transcribes, and summarizes",
+    "monthlyPrice": 32,
+    "annualPrice": 384,
+    "rating": 4.3,
+    "complianceScore": 85,
+    "policies": ["SOC2"],
+    "status": "approved"
+  },
+  {
+    "id": "v4",
+    "name": "Salesforce",
+    "category": "CRM",
+    "description": "Enterprise customer relationship management platform",
+    "monthlyPrice": 150,
+    "annualPrice": 1800,
+    "rating": 4.6,
+    "complianceScore": 98,
+    "policies": ["SOC2", "GDPR", "CCPA", "HIPAA"],
+    "status": "approved"
+  },
+  {
+    "id": "v5",
+    "name": "HubSpot",
+    "category": "CRM",
+    "description": "Inbound marketing and sales CRM platform",
+    "monthlyPrice": 80,
+    "annualPrice": 960,
+    "rating": 4.4,
+    "complianceScore": 90,
+    "policies": ["SOC2", "GDPR"],
+    "status": "approved"
+  },
+  {
+    "id": "v6",
+    "name": "Pipedrive",
+    "category": "CRM",
+    "description": "Sales-focused CRM with pipeline management",
+    "monthlyPrice": 60,
+    "annualPrice": 720,
+    "rating": 4.1,
+    "complianceScore": 82,
+    "policies": ["SOC2"],
+    "status": "approved"
+  }
+]

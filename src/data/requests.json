@@ -1,0 +1,102 @@
+[
+  {
+    "id": "r1",
+    "title": "Meeting Transcription for Sales Team",
+    "description": "Need a meeting transcription solution for our sales team",
+    "budget": 150,
+    "category": "Software",
+    "priority": "medium",
+    "agent": "procurement-agent-001",
+    "status": "completed",
+    "createdAt": "2025-01-15T14:00:00Z",
+    "stages": [
+      {
+        "name": "Requirements Analysis",
+        "status": "complete",
+        "output": ["Meeting transcription", "Sales enablement", "Budget under $150/month"]
+      },
+      {
+        "name": "Vendor Evaluation",
+        "status": "complete",
+        "vendors": [
+          { "name": "Fireflies", "score": 89, "reasoning": "Highest rated for sales teams, excellent transcription accuracy" },
+          { "name": "Otter", "score": 84, "reasoning": "Good real-time collaboration, lower price point" },
+          { "name": "Fathom", "score": 78, "reasoning": "Solid option but fewer enterprise integrations" }
+        ]
+      },
+      {
+        "name": "Governance Checks",
+        "status": "complete",
+        "checks": [
+          { "policy": "Budget Policy", "result": "pass" },
+          { "policy": "Category Policy", "result": "pass" },
+          { "policy": "Vendor Policy", "result": "pass" },
+          { "policy": "Autonomous Purchase Limit", "result": "pass" }
+        ]
+      },
+      {
+        "name": "Decision Engine",
+        "status": "complete",
+        "decision": "approved",
+        "selectedVendor": "Fireflies",
+        "monthlyCost": 39,
+        "reason": "Highest score and policy compliant"
+      },
+      {
+        "name": "Execution",
+        "status": "complete",
+        "action": "Stripe Payment Intent Created",
+        "paymentId": "pi_3OxK2L2eZvKYlo2C",
+        "executionStatus": "Ready for Purchase"
+      },
+      {
+        "name": "Audit Trail",
+        "status": "complete",
+        "decisionId": "DEC-2025-001",
+        "timestamp": "2025-01-15T14:32:00Z"
+      }
+    ]
+  },
+  {
+    "id": "r2",
+    "title": "Enterprise CRM Platform",
+    "description": "Enterprise CRM for customer management",
+    "budget": 1200,
+    "category": "Software",
+    "priority": "high",
+    "agent": "procurement-agent-001",
+    "status": "violated",
+    "createdAt": "2025-01-13T16:00:00Z",
+    "stages": [
+      {
+        "name": "Requirements Analysis",
+        "status": "complete",
+        "output": ["Enterprise CRM", "Customer management", "Budget under $1200/month"]
+      },
+      {
+        "name": "Vendor Evaluation",
+        "status": "complete",
+        "vendors": [
+          { "name": "Salesforce", "score": 95, "reasoning": "Industry leader, comprehensive feature set" },
+          { "name": "HubSpot", "score": 82, "reasoning": "Good mid-market option, easier implementation" },
+          { "name": "Pipedrive", "score": 75, "reasoning": "Sales-focused but limited enterprise features" }
+        ]
+      },
+      {
+        "name": "Governance Checks",
+        "status": "complete",
+        "checks": [
+          { "policy": "Budget Policy", "result": "pass" },
+          { "policy": "Category Policy", "result": "pass" },
+          { "policy": "Vendor Policy", "result": "pass" },
+          { "policy": "Autonomous Purchase Limit", "result": "violation" }
+        ],
+        "violation": {
+          "policy": "Autonomous Purchase Limit",
+          "reason": "Purchase exceeds autonomous spending threshold of $500/month",
+          "requiredAction": "Human Approval Required"
+        }
+      }
+    ]
+  }
+]

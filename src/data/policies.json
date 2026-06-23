@@ -1,0 +1,55 @@
+[
+  {
+    "id": "p1",
+    "name": "Maximum Autonomous Purchase Limit",
+    "description": "Maximum monthly spend allowed without human approval",
+    "type": "spending",
+    "threshold": 500,
+    "currency": "USD",
+    "action": "violation",
+    "severity": "critical",
+    "enabled": true
+  },
+  {
+    "id": "p2",
+    "name": "Allowed Software Categories",
+    "description": "Categories approved for autonomous procurement",
+    "type": "category",
+    "allowed": ["Software", "Cloud Services", "Developer Tools", "Security"],
+    "restricted": ["Financial Services", "Healthcare", "Legal"],
+    "action": "violation",
+    "severity": "high",
+    "enabled": true
+  },
+  {
+    "id": "p3",
+    "name": "Human Approval Threshold",
+    "description": "Purchases above this amount require human approval",
+    "type": "approval",
+    "threshold": 500,
+    "currency": "USD",
+    "action": "escalate",
+    "severity": "medium",
+    "enabled": true
+  },
+  {
+    "id": "p4",
+    "name": "Vendor Compliance Requirements",
+    "description": "Minimum compliance score required for vendor approval",
+    "type": "vendor",
+    "minScore": 80,
+    "requiredCertifications": ["SOC2"],
+    "action": "violation",
+    "severity": "high",
+    "enabled": true
+  },
+  {
+    "id": "p5",
+    "name": "Budget Policy",
+    "description": "Purchase must be within allocated budget",
+    "type": "budget",
+    "action": "violation",
+    "severity": "critical",
+    "enabled": true
+  }
+]
