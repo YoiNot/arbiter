@@ -24,8 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AppShell } from "@/components/app-shell";
-import { requests, vendors as allVendors } from "@/lib/data";
-import type { RequestStage, ProcurementRequest } from "@/lib/types";
+import { requests } from "@/lib/data";
+import type { RequestStage, ProcurementRequest, HermesResponse, StripeResponse } from "@/lib/types";
 
 function StageIndicator({
   status,
@@ -516,108 +516,118 @@ export default function ProcurementPage() {
   const [budget, setBudget] = useState("");
   const [category, setCategory] = useState("Software");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const runArbiter = () => {
+  const runArbiter = async () => {
     if (!need.trim() || !budget.trim()) return;
+    setIsLoading(true);
 
-    const matchedVendors = allVendors
-      .filter((v) => v.category.toLowerCase().includes(category.toLowerCase()) || v.category === "Software")
-      .sort((a, b) => b.complianceScore - a.complianceScore)
-      .slice(0, 3);
+    try {
+      const hermesRes = await fetch("/api/hermes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ need, budget: parseInt(budget), category, priority }),
+      });
+      const hermes: HermesResponse = await hermesRes.json();
 
-    const budgetNum = parseInt(budget);
-    const selected = matchedVendors[0];
-    const isViolation = budgetNum > 500;
+      let stripeData: StripeResponse | null = null;
+      if (hermes.decision === "approved") {
+        const stripeRes = await fetch("/api/stripe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vendor: hermes.selectedVendor.name,
+            amount: hermes.selectedVendor.monthlyCost,
+            frequency: "Monthly",
+          }),
+        });
+        stripeData = await stripeRes.json();
+      }
 
-    const newRequest: ProcurementRequest = {
-      id: `sim-${Date.now()}`,
-      title: need,
-      description: need,
-      budget: budgetNum,
-      category,
-      priority,
-      agent: "hermes-001",
-      status: isViolation ? "violated" : "completed",
-      createdAt: new Date().toISOString(),
-      stages: [
+      const stages: RequestStage[] = [
         {
           name: "Requirements Analysis",
           status: "complete",
-          output: [need, `Budget under $${budget}/month`, `Category: ${category}`],
+          output: hermes.constraints,
         },
         {
           name: "Hermes Decision Trace",
           status: "complete",
           hermesTrace: {
-            goal: need,
-            constraints: [`Budget under $${budget}/month`, `${category} category`, `${priority} priority`],
-            candidates: matchedVendors.map((v) => v.name),
-            strategy: ["Feature fit scoring", "Cost efficiency analysis", "Compliance verification"],
-            decisionPath: `${selected.name} selected — highest compliance score (${selected.complianceScore}), within budget`,
+            goal: hermes.goal,
+            constraints: hermes.constraints,
+            candidates: hermes.candidates.map((c) => c.name),
+            strategy: hermes.reasoning,
+            decisionPath: hermes.decisionReason,
           },
         },
         {
           name: "Vendor Evaluation",
           status: "complete",
-          vendors: matchedVendors.map((v) => ({
-            name: v.name,
-            score: v.complianceScore,
-            reasoning: v.description,
+          vendors: hermes.candidates.map((c) => ({
+            name: c.name,
+            score: c.score,
+            reasoning: c.reasoning,
           })),
         },
         {
           name: "Governance Checks",
           status: "complete",
-          checks: [
-            { policy: "Budget Policy", result: budgetNum <= 150 ? "pass" : "pass" },
-            { policy: "Category Policy", result: "pass" },
-            { policy: "Vendor Policy", result: "pass" },
-            { policy: "Autonomous Purchase Limit", result: isViolation ? "violation" : "pass" },
-          ],
-          ...(isViolation
-            ? {
-                violation: {
-                  policy: "Autonomous Purchase Limit",
-                  reason: `Purchase exceeds autonomous spending threshold of $500/month`,
-                  requiredAction: "Human Approval Required",
-                },
-              }
-            : {}),
+          checks: hermes.policyChecks,
+          ...(hermes.violation ? { violation: hermes.violation } : {}),
         },
-        ...(!isViolation
-          ? [
-              {
-                name: "Decision Engine" as const,
-                status: "complete" as const,
-                decision: "approved" as const,
-                selectedVendor: selected.name,
-                monthlyCost: selected.monthlyPrice,
-                reason: "Highest compliance score and within budget",
-              },
-              {
-                name: "Stripe Execution" as const,
-                status: "complete" as const,
-                stripe: {
-                  paymentIntentId: `pi_${Math.random().toString(36).slice(2, 14)}`,
-                  vendor: selected.name,
-                  amount: selected.monthlyPrice,
-                  frequency: "Monthly",
-                  status: "Ready for Execution",
-                },
-              },
-              {
-                name: "Audit Trail" as const,
-                status: "complete" as const,
-                decisionId: `DEC-2025-${String(Math.floor(Math.random() * 900) + 100)}`,
-                timestamp: new Date().toISOString(),
-              },
-            ]
-          : []),
-      ],
-    };
+      ];
 
-    setSimulatorRequest(newRequest);
-    setSelectedRequest(newRequest);
+      if (hermes.decision === "approved" && stripeData) {
+        stages.push(
+          {
+            name: "Decision Engine",
+            status: "complete",
+            decision: "approved",
+            selectedVendor: hermes.selectedVendor.name,
+            monthlyCost: hermes.selectedVendor.monthlyCost,
+            reason: hermes.decisionReason,
+          },
+          {
+            name: "Stripe Execution",
+            status: "complete",
+            stripe: {
+              paymentIntentId: stripeData.paymentIntentId,
+              vendor: stripeData.vendor,
+              amount: stripeData.amount / 100,
+              frequency: stripeData.frequency,
+              status: stripeData.status === "succeeded" ? "Ready for Execution" : "Processing",
+            },
+          },
+          {
+            name: "Audit Trail",
+            status: "complete",
+            decisionId: `DEC-2025-${String(Math.floor(Math.random() * 900) + 100)}`,
+            timestamp: new Date().toISOString(),
+          }
+        );
+      }
+
+      const newRequest: ProcurementRequest = {
+        id: `sim-${Date.now()}`,
+        title: need,
+        description: need,
+        budget: parseInt(budget),
+        category,
+        priority,
+        agent: hermes.agent,
+        status: hermes.decision === "violated" ? "violated" : "completed",
+        createdAt: new Date().toISOString(),
+        stages,
+      };
+
+      setSimulatorRequest(newRequest);
+      setSelectedRequest(newRequest);
+    } catch (err) {
+      console.error("Pipeline error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -698,14 +708,18 @@ export default function ProcurementPage() {
             <div className="mt-4 flex items-center gap-3">
               <button
                 onClick={runArbiter}
-                disabled={!need.trim() || !budget.trim()}
+                disabled={!need.trim() || !budget.trim() || isLoading}
                 className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <Play className="h-4 w-4" />
-                Run Arbiter
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+                {isLoading ? "Processing..." : "Run Arbiter"}
               </button>
               <span className="text-xs text-muted-foreground">
-                7-stage autonomous pipeline — ~5s simulation
+                {isLoading ? "Hermes is reasoning..." : "7-stage autonomous pipeline — API-driven"}
               </span>
             </div>
           </CardContent>

@@ -102,3 +102,49 @@ export interface ProcurementRequest {
   createdAt: string;
   stages: RequestStage[];
 }
+
+export interface HermesResponse {
+  traceId: string;
+  timestamp: string;
+  agent: string;
+  goal: string;
+  constraints: string[];
+  reasoning: string[];
+  candidates: Array<{
+    name: string;
+    score: number;
+    price: number;
+    compliance: number;
+    reasoning: string;
+  }>;
+  selectedVendor: {
+    name: string;
+    score: number;
+    monthlyCost: number;
+    complianceScore: number;
+  };
+  confidence: number;
+  policyChecks: PolicyCheck[];
+  decision: "approved" | "violated";
+  decisionReason: string;
+  violation: {
+    policy: string;
+    reason: string;
+    requiredAction: string;
+  } | null;
+}
+
+export interface StripeResponse {
+  paymentIntentId: string;
+  status: "succeeded" | "processing" | "requires_payment_method";
+  amount: number;
+  currency: string;
+  vendor: string;
+  frequency: string;
+  created: number;
+  livemode: boolean;
+  metadata: {
+    agent: string;
+    category: string;
+  };
+}

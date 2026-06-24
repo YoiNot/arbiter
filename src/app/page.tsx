@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Bot,
@@ -22,45 +23,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppShell } from "@/components/app-shell";
-import {
-  getViolationCount,
-  getTotalCapitalUnderGovernance,
-} from "@/lib/data";
-
-const kpiCards = [
-  {
-    label: "Autonomous Decisions",
-    value: "1,247",
-    change: "+12.4%",
-    trend: "up" as const,
-    icon: Bot,
-    description: "Total AI decisions processed",
-  },
-  {
-    label: "Capital Under Governance",
-    value: `$${getTotalCapitalUnderGovernance().toLocaleString()}`,
-    change: "+8.2%",
-    trend: "up" as const,
-    icon: DollarSign,
-    description: "Monthly managed spend",
-  },
-  {
-    label: "Policy Violations Prevented",
-    value: getViolationCount().toString(),
-    change: "+3 today",
-    trend: "up" as const,
-    icon: ShieldAlert,
-    description: "Blocked by governance",
-  },
-  {
-    label: "Approval Rate",
-    value: "94.2%",
-    change: "+0.3%",
-    trend: "up" as const,
-    icon: CheckCircle,
-    description: "Within policy thresholds",
-  },
-];
+import type { AuditLog } from "@/lib/types";
 
 const lifecycleSteps = [
   {
@@ -184,6 +147,56 @@ const staggerContainer = {
 };
 
 export default function DashboardPage() {
+  const [auditData, setAuditData] = useState<AuditLog[]>([]);
+
+  useEffect(() => {
+    fetch("/api/audit")
+      .then((r) => r.json())
+      .then((data) => setAuditData(data.logs || []))
+      .catch(() => {});
+  }, []);
+
+  const violationCount = auditData.filter((l) => l.decision === "violated").length;
+  const approvedCount = auditData.filter((l) => l.decision === "approved").length;
+  const totalCapital = auditData
+    .filter((l) => l.decision === "approved")
+    .reduce((sum, l) => sum + l.cost, 0);
+
+  const dynamicKpiCards = [
+    {
+      label: "Autonomous Decisions",
+      value: "1,247",
+      change: "+12.4%",
+      trend: "up" as const,
+      icon: Bot,
+      description: "Total AI decisions processed",
+    },
+    {
+      label: "Capital Under Governance",
+      value: `$${totalCapital.toLocaleString()}`,
+      change: "+8.2%",
+      trend: "up" as const,
+      icon: DollarSign,
+      description: "Monthly managed spend",
+    },
+    {
+      label: "Policy Violations Prevented",
+      value: violationCount.toString(),
+      change: "+3 today",
+      trend: "up" as const,
+      icon: ShieldAlert,
+      description: "Blocked by governance",
+    },
+    {
+      label: "Approval Rate",
+      value: auditData.length > 0 ? `${Math.round((approvedCount / auditData.length) * 100)}%` : "94.2%",
+      change: "+0.3%",
+      trend: "up" as const,
+      icon: CheckCircle,
+      description: "Within policy thresholds",
+    },
+  ];
+
   return (
     <AppShell>
       <motion.div
@@ -206,7 +219,7 @@ export default function DashboardPage() {
           variants={staggerContainer}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {kpiCards.map((kpi) => (
+          {dynamicKpiCards.map((kpi) => (
             <motion.div key={kpi.label} variants={fadeIn}>
               <Card className="border-border bg-card transition-colors hover:border-foreground/15">
                 <CardContent className="p-5">
