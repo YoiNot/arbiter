@@ -148,32 +148,30 @@ const staggerContainer = {
 
 export default function DashboardPage() {
   const [auditData, setAuditData] = useState<AuditLog[]>([]);
+  const [summary, setSummary] = useState({ totalDecisions: 0, approvedCount: 0, violatedCount: 0, totalCapital: 0, todayDecisions: 0 });
 
   useEffect(() => {
     fetch("/api/audit")
       .then((r) => r.json())
-      .then((data) => setAuditData(data.logs || []))
+      .then((data) => {
+        setAuditData(data.logs || []);
+        if (data.summary) setSummary(data.summary);
+      })
       .catch(() => {});
   }, []);
-
-  const violationCount = auditData.filter((l) => l.decision === "violated").length;
-  const approvedCount = auditData.filter((l) => l.decision === "approved").length;
-  const totalCapital = auditData
-    .filter((l) => l.decision === "approved")
-    .reduce((sum, l) => sum + l.cost, 0);
 
   const dynamicKpiCards = [
     {
       label: "Autonomous Decisions",
-      value: "1,247",
-      change: "+12.4%",
+      value: summary.totalDecisions.toString(),
+      change: `+${summary.todayDecisions} today`,
       trend: "up" as const,
       icon: Bot,
       description: "Total AI decisions processed",
     },
     {
       label: "Capital Under Governance",
-      value: `$${totalCapital.toLocaleString()}`,
+      value: `$${summary.totalCapital.toLocaleString()}`,
       change: "+8.2%",
       trend: "up" as const,
       icon: DollarSign,
@@ -181,7 +179,7 @@ export default function DashboardPage() {
     },
     {
       label: "Policy Violations Prevented",
-      value: violationCount.toString(),
+      value: summary.violatedCount.toString(),
       change: "+3 today",
       trend: "up" as const,
       icon: ShieldAlert,
@@ -189,7 +187,7 @@ export default function DashboardPage() {
     },
     {
       label: "Approval Rate",
-      value: auditData.length > 0 ? `${Math.round((approvedCount / auditData.length) * 100)}%` : "94.2%",
+      value: summary.totalDecisions > 0 ? `${Math.round((summary.approvedCount / summary.totalDecisions) * 100)}%` : "0%",
       change: "+0.3%",
       trend: "up" as const,
       icon: CheckCircle,
@@ -268,7 +266,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <Badge variant="secondary" className="text-xs bg-success-muted text-success">
-                  127 decisions today
+                  {summary.todayDecisions} decisions today
                 </Badge>
               </div>
             </CardHeader>
@@ -304,15 +302,17 @@ export default function DashboardPage() {
               </div>
               <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold">127</p>
+                  <p className="text-2xl font-bold">{summary.todayDecisions || summary.totalDecisions}</p>
                   <p className="text-xs text-muted-foreground">autonomous decisions processed today</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-success">96%</p>
+                  <p className="text-2xl font-bold text-success">
+                    {summary.totalDecisions > 0 ? Math.round((summary.approvedCount / summary.totalDecisions) * 100) : 0}%
+                  </p>
                   <p className="text-xs text-muted-foreground">approved automatically</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-warning">17</p>
+                  <p className="text-2xl font-bold text-warning">{summary.violatedCount}</p>
                   <p className="text-xs text-muted-foreground">policy escalations</p>
                 </div>
               </div>

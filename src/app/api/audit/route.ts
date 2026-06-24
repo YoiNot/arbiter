@@ -89,7 +89,19 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.json({ logs: results, total: results.length });
+  const summary = {
+    totalDecisions: auditStore.length,
+    approvedCount: auditStore.filter((r) => r.decision === "approved").length,
+    violatedCount: auditStore.filter((r) => r.decision === "violated").length,
+    totalCapital: auditStore
+      .filter((r) => r.decision === "approved")
+      .reduce((sum, r) => sum + r.cost, 0),
+    todayDecisions: auditStore.filter(
+      (r) => new Date(r.timestamp).toDateString() === new Date().toDateString()
+    ).length,
+  };
+
+  return NextResponse.json({ logs: results, total: results.length, summary });
 }
 
 export async function POST(request: Request) {

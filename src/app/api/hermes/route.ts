@@ -38,13 +38,17 @@ export async function POST(request: Request) {
   const body: HermesRequest = await request.json();
   const { need, budget, category, priority } = body;
 
+  const settingsRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/settings`);
+  const settings = await settingsRes.json();
+  const threshold = settings.spendingThreshold || 500;
+
   await delay(800 + Math.random() * 700);
 
   const vendors = mockVendors[category] || mockVendors["Software"];
   const filtered = vendors.filter((v) => v.price <= budget * 1.5);
   const candidates = filtered.length > 0 ? filtered : vendors;
   const selected = candidates.reduce((best, v) => (v.score > best.score ? v : best), candidates[0]);
-  const isViolation = budget > 500;
+  const isViolation = budget > threshold;
 
   const response = {
     traceId: `hermes-trace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -79,18 +83,18 @@ export async function POST(request: Request) {
     confidence: selected.score / 100,
     policyChecks: [
       { policy: "Budget Policy", result: budget <= 150 ? "pass" : "pass", checking: false },
-      { policy: "Category Policy", result: "pass", checking: false },
-      { policy: "Vendor Policy", result: "pass", checking: false },
+      { policy: "Category Policy", result: settings.activePolicies?.includes("p2") ? "pass" : "skipped", checking: false },
+      { policy: "Vendor Policy", result: settings.activePolicies?.includes("p4") ? "pass" : "skipped", checking: false },
       { policy: "Autonomous Purchase Limit", result: isViolation ? "violation" : "pass", checking: false },
     ],
     decision: isViolation ? "violated" : "approved",
     decisionReason: isViolation
-      ? `Purchase exceeds autonomous spending threshold of $500/month`
+      ? `Purchase exceeds autonomous spending threshold of $${threshold}/month`
       : `${selected.name} selected — highest compliance score (${selected.compliance}), within budget`,
     violation: isViolation
       ? {
           policy: "Autonomous Purchase Limit",
-          reason: `Purchase exceeds autonomous spending threshold of $500/month`,
+          reason: `Purchase exceeds autonomous spending threshold of $${threshold}/month`,
           requiredAction: "Human Approval Required",
         }
       : null,
