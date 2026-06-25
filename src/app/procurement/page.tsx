@@ -447,7 +447,7 @@ function AnimatedPipeline({ request }: { request: ProcurementRequest }) {
         clearInterval(interval);
         setIsRunning(false);
       }
-    }, 700);
+    }, 1000);
   }, [request.stages.length]);
 
   const visible = request.stages.slice(0, visibleStages);
@@ -512,9 +512,9 @@ const priorities = ["low", "medium", "high"] as const;
 export default function ProcurementPage() {
   const [selectedRequest, setSelectedRequest] = useState(requests[0]);
   const [simulatorRequest, setSimulatorRequest] = useState<ProcurementRequest | null>(null);
-  const [need, setNeed] = useState("");
-  const [budget, setBudget] = useState("");
-  const [category, setCategory] = useState("Software");
+  const [need, setNeed] = useState("Code Review Tool");
+  const [budget, setBudget] = useState("20");
+  const [category, setCategory] = useState("Developer Tools");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [isLoading, setIsLoading] = useState(false);
 
