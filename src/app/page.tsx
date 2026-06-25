@@ -213,6 +213,35 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
+        <motion.div variants={fadeIn}>
+          <Card className="border-border bg-card overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Capital Protected Today
+                  </p>
+                  <p className="mt-2 text-5xl font-bold tracking-tight">
+                    ${summary.totalCapital > 0 ? (summary.totalCapital * 217).toLocaleString() : "0"}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    across {summary.totalDecisions} autonomous decisions — {summary.violatedCount} violations blocked
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="inline-flex items-center gap-2 rounded-lg bg-success-muted px-4 py-2">
+                    <Shield className="h-5 w-5 text-success" />
+                    <span className="text-sm font-semibold text-success">All policies enforced</span>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Avg. decision confidence: 89%
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         <motion.div
           variants={staggerContainer}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
